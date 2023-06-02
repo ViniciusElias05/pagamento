@@ -32,7 +32,6 @@ app.get("/pagar", async (req, res)=>{
 
     try{
         var pagamento = await MercadoPago.preferences.create(dados);
-        console.log(pagamento);
         //Banco.SalvarPagamento({id: id, pagador: emailDoPagador}); Aqui que se salva o pagamento no banco
         return res.redirect(pagamento.body.init_point);
     }catch(err){
@@ -42,8 +41,28 @@ app.get("/pagar", async (req, res)=>{
 });
 
 app.post("/not", (req,res)=>{
-    console.log(req.query);
-    res.send("Ok!");
+    var id = req.query.id;
+
+    setTimeout(()=>{
+        var filter = {
+            "order.id": id
+        }
+        MercadoPago.payment.search({
+            qs: filter
+        }).then(data =>{
+            var pagamento = data.body.results[0];
+            if(pagamento != undefined){
+                console.log(pagamento.external_reference);
+                console.log(pagamento.status);
+            }else{
+                console.log("Pagamento não existe!");
+            }
+        }).catch(err =>{
+            console.log(err);
+        })
+    },20000)
+
+    res.send("Ok");
 });
 
 app.listen(80,(req,res)=>{
